@@ -13,7 +13,8 @@ from .perforce import _p4fast, P4Change, p4run, DEFAULT_CHANGE, toDepotAndDiskPa
 
 # try to import the windows api - this may fail if we're not running on windows
 try:
-    import win32con, win32api
+    import win32con
+    import win32api
 except ImportError:
     win32api = None
     win32con = None
@@ -140,13 +141,15 @@ def resolve_and_split(path, env_dict=None, raise_on_missing=False):
         else:
             paths_to_use_append(tok)
 
-    # finally convert it back into a path string and pop out the last token if its empty
+    # finally convert it back into a path string and pop out the last token if
+    # its empty
     path = PATH_SEPARATOR.join(paths_to_use)
     try:
         if not paths_to_use[-1]:
             paths_to_use.pop()
     except IndexError:
-        raise PathError('Attempted to resolve a ValvePath with "{0}", which is not a valid path string.'.format(path))
+        raise PathError(
+            'Attempted to resolve a ValvePath with "{0}", which is not a valid path string.'.format(path))
 
     path = real_path(path)
 
@@ -208,8 +211,9 @@ class ValvePath(Path):
         to False will do things like caseless equality testing, caseless hash generation
         """
 
-        # early out if we've been given a ValvePath instance - paths are immutable so there is no reason not to just return what was passed in
-        if type(path) == cls:
+        # early out if we've been given a ValvePath instance - paths are
+        # immutable so there is no reason not to just return what was passed in
+        if isinstance(path, cls):
             return path
 
         # set to an empty string if we've been init'd with None
@@ -235,7 +239,9 @@ class ValvePath(Path):
         returns a temporary filepath - the file should be unique (i think) but certainly the file is guaranteed
         to not exist
         """
-        import datetime, random
+        import datetime
+        import random
+
         def generate_random_path_name():
             now = datetime.datetime.now()
             rnd = '%06d' % (abs(random.gauss(0.5, 0.5) * 10 ** 6))
@@ -262,7 +268,8 @@ class ValvePath(Path):
         return True
 
     def __add__(self, other):
-        return self.__class__('%s%s%s' % (self, PATH_SEPARATOR, other), self.__CASE_MATTERS)
+        return self.__class__('%s%s%s' % (
+            self, PATH_SEPARATOR, other), self.__CASE_MATTERS)
 
     # the / or + operator both concatenate path tokens
     __div__ = __add__
@@ -392,9 +399,10 @@ class ValvePath(Path):
     def get_stat(self):
         try:
             return os.stat(self.as_str)
-        except:
+        except BaseException:
             # return a null stat_result object
-            return os.stat_result([0 for n in range(os.stat_result.n_sequence_fields)])
+            return os.stat_result(
+                [0 for n in range(os.stat_result.n_sequence_fields)])
 
     stat = property(get_stat)
 
@@ -404,12 +412,13 @@ class ValvePath(Path):
         """
         return self.stat[8]
 
-    modified_date = property(get_modified_date, doc="Return the last modified date in seconds.")
+    modified_date = property(get_modified_date,
+                             doc="Return the last modified date in seconds.")
 
     def is_abs(self):
         try:
             return os.path.isabs(str(self))
-        except:
+        except BaseException:
             return False
 
     def abs(self):
@@ -424,7 +433,7 @@ class ValvePath(Path):
         The additional arguments only included for class compatibility.
         """
         assert (sep is None) or (sep == '\\') or (
-                sep == '/'), "ValvePath objects can only be split by path separators, ie. '/'."
+            sep == '/'), "ValvePath objects can only be split by path separators, ie. '/'."
         return list(self._splits)
 
     def as_dir(self):
@@ -434,7 +443,8 @@ class ValvePath(Path):
         if self.hasTrailing:
             return self
 
-        return self.__class__('%s%s' % (self._passed, PATH_SEPARATOR), self.__CASE_MATTERS)
+        return self.__class__(
+            '%s%s' % (self._passed, PATH_SEPARATOR), self.__CASE_MATTERS)
 
     def as_file(self):
         """
@@ -471,7 +481,7 @@ class ValvePath(Path):
         try:
             s = os.stat(self)
             return s.st_mode & stat.S_IREAD
-        except:
+        except BaseException:
             # i think this only happens if the file doesn't exist
             return False
 
@@ -488,7 +498,7 @@ class ValvePath(Path):
                 setTo = stat.S_IWRITE
 
             os.chmod(self, setTo)
-        except:
+        except BaseException:
             pass
 
     def get_writable(self):
@@ -499,8 +509,9 @@ class ValvePath(Path):
         try:
             s = os.stat(self)
             return s.st_mode & stat.S_IWRITE
-        except:
-            # i think this only happens if the file doesn't exist - so return true
+        except BaseException:
+            # i think this only happens if the file doesn't exist - so return
+            # true
             return True
 
     def is_writeable(self):
@@ -656,7 +667,8 @@ class ValvePath(Path):
             return super(self.__class__, self).find(search)
 
         if caseMatters is None:
-            # in this case assume system case sensitivity - ie sensitive only on *nix platforms
+            # in this case assume system case sensitivity - ie sensitive only
+            # on *nix platforms
             caseMatters = self.__CASE_MATTERS
 
         if not caseMatters:
@@ -719,7 +731,8 @@ class ValvePath(Path):
             try:
                 os.remove(self)
             except WindowsError as e:
-                win32api.SetFileAttributes(self, win32con.FILE_ATTRIBUTE_NORMAL)
+                win32api.SetFileAttributes(
+                    self, win32con.FILE_ATTRIBUTE_NORMAL)
                 os.remove(self)
         elif self.is_dir():
             for f in self.files(recursive=True):
@@ -795,7 +808,8 @@ class ValvePath(Path):
                 change = None
                 asP4 = P4File(self)
 
-                # if its open for add, revert - we're going to rename the file...
+                # if its open for add, revert - we're going to rename the
+                # file...
                 if asP4.action == 'add':
                     asP4.revert()
                     change = asP4.getChange()
@@ -807,7 +821,8 @@ class ValvePath(Path):
                     asP4.rename(newPath)
                     return newPath
 
-                # if the target exists and is managed by p4, make sure its open for edit
+                # if the target exists and is managed by p4, make sure its open
+                # for edit
                 if tgtExists and asP4.managed(newPath):
                     _p4fast('edit', newPath)
 
@@ -865,7 +880,7 @@ class ValvePath(Path):
                         result = asP4.copy(target)
 
                         return target
-                except:
+                except BaseException:
                     pass
 
         return self._copy(target, nameIsLeaf)
@@ -954,7 +969,8 @@ class ValvePath(Path):
             ret = self._pickle(toPickle)
 
             if isUnderClient and not hasBeenHandled:
-                # need to explicitly add pickled files as binary type files, otherwise p4 mangles them
+                # need to explicitly add pickled files as binary type files,
+                # otherwise p4 mangles them
                 _p4fast('add -t binary', self)
 
             return ret
@@ -987,7 +1003,8 @@ class ValvePath(Path):
             pathToks = [t.lower() for t in pathToks]
             otherToks = [t.lower() for t in otherToks]
 
-        # if the first path token is different, early out - one is not a subset of the other in any fashion
+        # if the first path token is different, early out - one is not a subset
+        # of the other in any fashion
         if otherToks[0] != pathToks[0]:
             return None
 
@@ -1028,7 +1045,10 @@ class ValvePath(Path):
         """
 
         toks = toksLower = self._splits
-        otherToks = ValvePath(other, self.__CASE_MATTERS, envDict=envDict).split()
+        otherToks = ValvePath(
+            other,
+            self.__CASE_MATTERS,
+            envDict=envDict).split()
         newToks = []
         n = 0
         if not self.__CASE_MATTERS:
@@ -1096,7 +1116,8 @@ class ValvePath(Path):
             return False
 
         for tokOther, tokSelf in zip(otherToks, selfToks):
-            if tokOther != tokSelf: return False
+            if tokOther != tokSelf:
+                return False
 
         return True
 
@@ -1124,7 +1145,8 @@ class ValvePath(Path):
 
         return True
 
-    def _list_filesystem_items(self, itemtest, namesOnly=False, recursive=False):
+    def _list_filesystem_items(
+            self, itemtest, namesOnly=False, recursive=False):
         """
         does all the listing work - itemtest can generally only be one of os.path.isfile or
         os.path.isdir.  if anything else is passed in, the arg given is the full path as a
@@ -1178,7 +1200,8 @@ class ValvePath(Path):
         returns a generator that lists all files under the path (assuming its a directory).  If namesOnly
         is True, then only directory names (relative to the current dir) are returned
         """
-        return self._list_filesystem_items(os.path.isfile, namesOnly, recursive)
+        return self._list_filesystem_items(
+            os.path.isfile, namesOnly, recursive)
 
     ########### VALVE SPECIFIC PATH METHODS ###########
 
@@ -1221,7 +1244,8 @@ class ValvePath(Path):
 
         return None
 
-    def expandAsGameAddon(self, gameInfo, addon, extension=None, mustExist=False):
+    def expandAsGameAddon(self, gameInfo, addon,
+                          extension=None, mustExist=False):
         """
         Given an addon name, expand a relative ValvePath to an absolute game ValvePath.
         E.g. passing 'pudge_battle' and a ValvePath of 'maps/pudge_battle.bsp', this would expand to:
@@ -1233,7 +1257,8 @@ class ValvePath(Path):
         if (not mustExist) or (os.path.exists(addonPath)):
             return addonPath
 
-    def expandAsContentAddon(self, gameinfo, addon, extension=None, mustExist=False):
+    def expandAsContentAddon(self, gameinfo, addon,
+                             extension=None, mustExist=False):
         """
         Given an addon name, expand a relative ValvePath to an abosolute game ValvePath.
         E.g. passing 'pudge_battle' and a ValvePath of 'maps/pudge_battle.bsp', this would expand to:
@@ -1309,13 +1334,17 @@ class ValvePath(Path):
             if modName in toks:
                 if 'content' in toks_lower:
                     for i in range(len(toks) - 1, 1, -1):
-                        # Look for set of tokens that are 'content' followed by the mod name
-                        if (toks_lower[i] == modName) and (toks_lower[i - 1] == 'content'):
+                        # Look for set of tokens that are 'content' followed by
+                        # the mod name
+                        if (toks_lower[i] == modName) and (
+                                toks_lower[i - 1] == 'content'):
                             return ValvePath('\\'.join(toks[i:]))
                 elif 'game' in toks_lower:
                     for i in range(len(toks) - 1, 1, -1):
-                        # Look for set of tokens that are 'game' followed by the mod name
-                        if (toks_lower[i] == modName) and (toks_lower[i - 1] == 'game'):
+                        # Look for set of tokens that are 'game' followed by
+                        # the mod name
+                        if (toks_lower[i] == modName) and (
+                                toks_lower[i - 1] == 'game'):
                             return ValvePath('\\'.join(toks[i:]))
         return None
 
@@ -1325,7 +1354,8 @@ class ValvePath(Path):
         If the path doesn't match the game or content, the original filepath is returned.
         """
         relPath = self.asRelative()
-        if not relPath: return self
+        if not relPath:
+            return self
         return relPath[1:]
 
     def asContentModRelative(self):
@@ -1348,7 +1378,8 @@ class ValvePath(Path):
         relPath = self.asRelativeFuzzy()
 
         if relPath is not None:
-            # Make sure the path starts with a mod in search mods before stripping it away
+            # Make sure the path starts with a mod in search mods before
+            # stripping it away
             for modName in valve.gameInfo.get_search_mods():
                 if relPath.startswith(modName):
                     return relPath[1:]
@@ -1392,7 +1423,9 @@ class ValvePath(Path):
             return rel
 
         # No direct matches found, continue
-        addonModNames = ['{0}_addons'.format(m.lower()) for m in valve.gameInfo.get_search_mods()]
+        addonModNames = [
+            '{0}_addons'.format(
+                m.lower()) for m in valve.gameInfo.get_search_mods()]
         toks = self.split()
         toks_lower = [s.lower() for s in toks]
 
@@ -1401,17 +1434,23 @@ class ValvePath(Path):
             if addonModName in toks:
                 if 'content' in toks_lower:
                     for i in range(len(toks) - 1, 1, -1):
-                        # Look for set of tokens that are 'content' followed by the mod name
-                        if (toks_lower[i] == addonModName) and (toks_lower[i - 1] == 'content'):
+                        # Look for set of tokens that are 'content' followed by
+                        # the mod name
+                        if (toks_lower[i] == addonModName) and (
+                                toks_lower[i - 1] == 'content'):
                             addonRelPath = ValvePath('\\'.join(toks[i:]))
-                            # Return path with mod_addons and addon name removed
+                            # Return path with mod_addons and addon name
+                            # removed
                             return addonRelPath[2:]
                 elif 'game' in toks_lower:
                     for i in range(len(toks) - 1, 1, -1):
-                        # Look for set of tokens that are 'game' followed by the mod name
-                        if (toks_lower[i] == addonModName) and (toks_lower[i - 1] == 'game'):
+                        # Look for set of tokens that are 'game' followed by
+                        # the mod name
+                        if (toks_lower[i] == addonModName) and (
+                                toks_lower[i - 1] == 'game'):
                             addonRelPath = ValvePath('\\'.join(toks[i:]))
-                            # Return path with mod_addons and addon name removed
+                            # Return path with mod_addons and addon name
+                            # removed
                             return addonRelPath[2:]
         return None
 
@@ -1509,7 +1548,8 @@ class ValvePath(Path):
         """
         Returns the addons base directory name found in the ValvePath (e.g. 'dota_addons' ) or None.
         """
-        for base in valve.getAddonBasePaths(asContent=self.isUnder(valve.content())):
+        for base in valve.getAddonBasePaths(
+                asContent=self.isUnder(valve.content())):
             if self.isUnder(base):
                 return base.name()
         return None
@@ -1591,7 +1631,8 @@ class P4File(ValvePath):
 
         if isinstance(f, (list, tuple)):
             if verifyExistence:
-                return '"%s"' % '" "'.join([anF for anF in f if ValvePath(anF).exists])
+                return '"%s"' % '" "'.join(
+                    [anF for anF in f if ValvePath(anF).exists])
             else:
                 return '"%s"' % '" "'.join(f)
 
@@ -1626,7 +1667,8 @@ class P4File(ValvePath):
             try:
                 return stat['headAction'] != 'delete'
             except KeyError:
-                # this can happen if the file is a new file and is opened for add
+                # this can happen if the file is a new file and is opened for
+                # add
                 return True
         return False
 
@@ -1651,7 +1693,8 @@ class P4File(ValvePath):
 
                 for e in results.errors:
                     for ph in phrases:
-                        if ph in e: return False
+                        if ph in e:
+                            return False
 
         return True
 
@@ -1703,7 +1746,8 @@ class P4File(ValvePath):
         returns True if the user has the latest version of the file, otherwise False
         """
 
-        # if no p4 integration, always say everything is the latest to prevent complaints from tools
+        # if no p4 integration, always say everything is the latest to prevent
+        # complaints from tools
         if not self.USE_P4:
             return True
 
@@ -1727,7 +1771,8 @@ class P4File(ValvePath):
         """
         Returns True if the file will be deleted at the head revision
         """
-        # if no p4 integration, always say everything is not deleted to prevent complaints from tools
+        # if no p4 integration, always say everything is not deleted to prevent
+        # complaints from tools
         if not self.USE_P4:
             return False
         status = self.getStatus(f)
@@ -1746,7 +1791,7 @@ class P4File(ValvePath):
 
         try:
             args = ['add', '-c', self.getOrCreateChange()]
-        except:
+        except BaseException:
             return False
 
         # if the type has been specified, add it to the add args
@@ -1765,7 +1810,8 @@ class P4File(ValvePath):
         f = self.getFile(f)
         if not self.USE_P4:
 
-            # if p4 is disabled but the file is read-only, set it to be writeable...
+            # if p4 is disabled but the file is read-only, set it to be
+            # writeable...
             if not f.get_writable():
                 f.set_writable()
 
@@ -1776,8 +1822,12 @@ class P4File(ValvePath):
             return True
 
         try:
-            ret = p4run('edit', '-c', self.getOrCreateChange(), self.getFile(f))
-        except:
+            ret = p4run(
+                'edit',
+                '-c',
+                self.getOrCreateChange(),
+                self.getFile(f))
+        except BaseException:
             return False
 
         if (ret.errors) or (ret == {}):
@@ -1825,7 +1875,8 @@ class P4File(ValvePath):
                 status = self.getStatus()
                 headRev = status['headRev']
                 rev += int(headRev)
-                if rev <= 0: rev = 'none'
+                if rev <= 0:
+                    rev = 'none'
                 f += '#%s' % rev
             else:
                 f += '#%s' % rev
@@ -1861,7 +1912,12 @@ class P4File(ValvePath):
         try:
             action = self.getAction(f)
             if action is None and self.managed(f):
-                self.run('integrate', '-c', self.getOrCreateChange(), f, str(newName))
+                self.run(
+                    'integrate',
+                    '-c',
+                    self.getOrCreateChange(),
+                    f,
+                    str(newName))
                 return self.run('delete', '-c', self.getOrCreateChange(), f)
         except Exception:
             pass
@@ -1876,7 +1932,8 @@ class P4File(ValvePath):
         action = self.getAction(f)
 
         if self.managed(f):
-            return self.run('integrate', '-c', self.getOrCreateChange(), f, newName)
+            return self.run('integrate', '-c',
+                            self.getOrCreateChange(), f, newName)
 
         return False
 
@@ -1938,7 +1995,8 @@ class P4File(ValvePath):
         f = self.getFile(f)
         ch = self.getChange(f)
         if ch == P4Change.CHANGE_NUM_DEFAULT:
-            return P4Change.FetchByDescription(self.DEFAULT_CHANGE, True).change
+            return P4Change.FetchByDescription(
+                self.DEFAULT_CHANGE, True).change
 
         return ch
 
@@ -1946,7 +2004,8 @@ class P4File(ValvePath):
         if description is None:
             description = self.DEFAULT_CHANGE
 
-        return P4Change.FetchByDescription(description, createIfNotFound).change
+        return P4Change.FetchByDescription(
+            description, createIfNotFound).change
 
     def allPaths(self, f=None):
         """
@@ -1978,7 +2037,8 @@ class P4File(ValvePath):
         return self.allPaths(f)[1]
 
 
-P4Data = P4File  # userd to be called P4Data - this is just for any legacy references...
+# userd to be called P4Data - this is just for any legacy references...
+P4Data = P4File
 
 
 def findInPyPath(filename):

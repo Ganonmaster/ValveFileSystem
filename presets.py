@@ -47,7 +47,8 @@ def getPresetDirs(locale, tool):
 
 
 def presetPath(locale, tool, presetName, ext=DEFAULT_XTN):
-    preset = getPresetDirs(locale, tool)[0] + scrubName(presetName, exceptions='./')
+    preset = getPresetDirs(locale, tool)[
+        0] + scrubName(presetName, exceptions='./')
     preset = preset.set_extension(ext)
 
     return preset
@@ -81,7 +82,8 @@ def unpicklePreset(locale, tool, presetName, ext=DEFAULT_XTN):
     for dir in dirs:
         cur = dir / presetName
         cur.extension = ext
-        if cur.exists: return cur.unpickle()
+        if cur.exists:
+            return cur.unpickle()
     raise IOError("file doesn't exist!")
 
 
@@ -99,7 +101,8 @@ def listPresets(locale, tool, ext=DEFAULT_XTN):
     for d in getPresetDirs(locale, tool):
         if d.exists:
             for f in d.files():
-                if f.name() in alreadyAdded: continue
+                if f.name() in alreadyAdded:
+                    continue
                 if f.has_extension(ext):
                     files.append(f)
                     alreadyAdded.add(f.name())
@@ -129,7 +132,8 @@ def listAllPresets(tool, ext=DEFAULT_XTN, localTakesPrecedence=False):
 
     # so teh localTakesPrecedence determines which locale "wins" when there are leaf name clashes
     # ie if there is a preset in both locales called "yesplease.preset", if localTakesPrecedence is
-    # False, then the global one gets included, otherwise the local one is listed
+    # False, then the global one gets included, otherwise the local one is
+    # listed
     alreadyAdded = set()
     locales = {LOCAL: [], GLOBAL: []}
     for p in primary:
@@ -137,7 +141,8 @@ def listAllPresets(tool, ext=DEFAULT_XTN, localTakesPrecedence=False):
         alreadyAdded.add(p.name())
 
     for p in secondary:
-        if p.name() in alreadyAdded: continue
+        if p.name() in alreadyAdded:
+            continue
         locales[secondaryLocale].append(p)
 
     return locales
@@ -165,7 +170,8 @@ def findPreset(presetName, tool, ext=DEFAULT_XTN, startLocale=LOCAL):
     other = list(LOCALES).remove(startLocale)
     for loc in [startLocale, other]:
         p = getPresetPath(presetName, tool, ext, loc)
-        if p is not None: return p
+        if p is not None:
+            return p
 
 
 def dataFromPresetPath(path):
@@ -182,7 +188,9 @@ def dataFromPresetPath(path):
         locale = LOCAL
         pathCopy -= kLOCAL_BASE_DIR
     else:
-        raise PresetException("%s isn't under the local or the global preset dir" % path)
+        raise PresetException(
+            "%s isn't under the local or the global preset dir" %
+            path)
 
     tool = pathCopy[-2]
     ext = pathCopy.set_extension()
@@ -254,7 +262,8 @@ class PresetManager(object):
         return Preset(locale, self.tool, name, self.extension)
 
     def findPreset(self, name, startLocale=LOCAL):
-        return Preset(*dataFromPresetPath(findPreset(name, self.tool, self.extension, startLocale)))
+        return Preset(*dataFromPresetPath(findPreset(name,
+                                                     self.tool, self.extension, startLocale)))
 
     def listPresets(self, locale=GLOBAL):
         return listPresets(locale, self.tool, self.extension)
@@ -317,7 +326,8 @@ class Preset(ValvePath):
         destP4 = None
         addToP4 = False
 
-        # in this case, we want to make sure the file is open for edit, or added to p4...
+        # in this case, we want to make sure the file is open for edit, or
+        # added to p4...
         if other == GLOBAL:
             destP4 = P4File(dest)
             if destP4.managed():
@@ -329,13 +339,15 @@ class Preset(ValvePath):
         ValvePath.copy(self, dest)
         if addToP4:
             # now if we're adding to p4 - we need to know if the preset is a pickled preset - if it is, we need
-            # to make sure we add it as a binary file, otherwise p4 assumes text, which screws up the file
+            # to make sure we add it as a binary file, otherwise p4 assumes
+            # text, which screws up the file
             try:
                 self.unpickle()
                 destP4.add(type=P4File.BINARY)
             except Exception as e:
                 # so it seems its not a binary file, so just do a normal add
-                print('exception when trying to unpickle - assuming a text preset', e)
+                print(
+                    'exception when trying to unpickle - assuming a text preset', e)
                 destP4.add()
             print('opening %s for add' % dest)
 

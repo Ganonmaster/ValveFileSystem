@@ -35,7 +35,8 @@ def removeDupes(iterable):
     unique = set()
     newIterable = iterable.__class__()
     for item in iterable:
-        if item not in unique: newIterable.append(item)
+        if item not in unique:
+            newIterable.append(item)
         unique.add(item)
 
     return newIterable
@@ -72,10 +73,12 @@ def iterBy(iterable, count):
     while True:
         try:
             toYield = []
-            for n in range(count): toYield.append(i.next())
+            for n in range(count):
+                toYield.append(i.next())
             yield toYield
         except StopIteration:
-            if toYield: yield toYield
+            if toYield:
+                yield toYield
             break
 
 
@@ -86,7 +89,8 @@ def findMostRecentDefinitionOf(variableName):
         fr = inspect.currentframe()
         frameInfos = inspect.getouterframes(fr, 0)
 
-        # in this case, walk up the caller tree and find the first occurance of the variable named <variableName>
+        # in this case, walk up the caller tree and find the first occurance of
+        # the variable named <variableName>
         for frameInfo in frameInfos:
             frame = frameInfo[0]
             var = None
@@ -105,7 +109,7 @@ def findMostRecentDefinitionOf(variableName):
                     pass
 
     # NOTE: this method should never ever throw an exception...
-    except:
+    except BaseException:
         pass
 
 
@@ -117,7 +121,9 @@ def getArgDefault(function, argName):
     '''
     args, va, vkw, defaults = inspect.getargspec(function)
     if argName not in args:
-        raise NameError("The given arg does not exist in the %s function" % function)
+        raise NameError(
+            "The given arg does not exist in the %s function" %
+            function)
 
     args.reverse()
     idx = args.index(argName)
@@ -125,7 +131,9 @@ def getArgDefault(function, argName):
     try:
         return list(reversed(defaults))[idx]
     except IndexError:
-        raise IndexError("The function %s has no default for the %s arg" % (function, argName))
+        raise IndexError(
+            "The function %s has no default for the %s arg" %
+            (function, argName))
 
 
 def findInFile(file, search):

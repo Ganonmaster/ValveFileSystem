@@ -107,9 +107,11 @@ def tools(engine='Source 2'):
 
                 except KeyError:
                     try:
-                        _TOOLS = Path(os.environ['VPROJECT']) / '/../../../tools'
+                        _TOOLS = Path(
+                            os.environ['VPROJECT']) / '/../../../tools'
                     except KeyError:
-                        raise KeyError('%VGAME% or %VPROJECT% not defined - cannot determine tools path')
+                        raise KeyError(
+                            '%VGAME% or %VPROJECT% not defined - cannot determine tools path')
     else:
         if _TOOLS is None:
             try:
@@ -121,7 +123,8 @@ def tools(engine='Source 2'):
                     try:
                         _TOOLS = Path(os.environ['VPROJECT']) / '../sdktools'
                     except KeyError:
-                        raise KeyError('%VGAME% or %VPROJECT% not defined - cannot determine tools path')
+                        raise KeyError(
+                            '%VGAME% or %VPROJECT% not defined - cannot determine tools path')
 
     return _TOOLS
 
@@ -139,8 +142,10 @@ def platform():
         _PLATFORM = os.environ['VPLATFORM']
     except KeyError:
         try:
-            # next try to determine platform by looking for win64 bin directory in the path
-            bin64Dir = r'{0}\bin\{1}'.format(os.environ['VGAME'], WIN_64_SUFFIX)
+            # next try to determine platform by looking for win64 bin directory
+            # in the path
+            bin64Dir = r'{0}\bin\{1}'.format(
+                os.environ['VGAME'], WIN_64_SUFFIX)
             if bin64Dir in os.environ['PATH']:
                 _PLATFORM = WIN_64_SUFFIX
         except (KeyError, Exception):
@@ -210,9 +215,9 @@ def resolveValvePath(valvePath, basePath=content()):
             return p
 
 
-##-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 ##
-##-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 def FullPathToRelativePath(path, basePath=content()):
     """
     Converts a full path to a relative path based on the current gameinfo and the
@@ -238,10 +243,11 @@ def FullPathToRelativePath(path, basePath=content()):
     return path
 
 
-##-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 ##
-##-----------------------------------------------------------------------------
-def RelativePathToFullPath(path, basePath=content(), exist=True, includeAddons=None):
+# -----------------------------------------------------------------------------
+def RelativePathToFullPath(path, basePath=content(),
+                           exist=True, includeAddons=None):
     """
     Converts a relative path to a full path based on the current gameinfo and
     specified base directory.  If exist is True then the file must already exist
@@ -262,19 +268,20 @@ def RelativePathToFullPath(path, basePath=content(), exist=True, includeAddons=N
 
     # if we don't care if it exists, return basePath/mod/relPath
     if not exist:
-        return os.path.normpath(os.path.join(os.path.join(sBasePath, mod()), sRelPath))
+        return os.path.normpath(os.path.join(
+            os.path.join(sBasePath, mod()), sRelPath))
 
     # Not found, must exist, return None
     return None
 
 
-##-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 ##
-##-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 def FixSlashes(path, pathSep='/'):
     try:
         return path.replace('\\', pathSep).replace('/', pathSep)
-    except:
+    except BaseException:
         return path
 
 
@@ -330,10 +337,10 @@ def reportUsageToAuthor(author=None, payloadCB=None):
 
     # dataToSend = []
     # if author is None:
-    ##set the default - in case we can't find an __author__ variable up the tree...
+    # set the default - in case we can't find an __author__ variable up the tree...
     # author = DEFAULT_AUTHOR
 
-    ##in this case, walk up the caller tree and find the top most __author__ variable definition
+    # in this case, walk up the caller tree and find the top most __author__ variable definition
     # for frameInfo in frameInfos:
     # frame = frameInfo[0]
     # dataToSend.append( '%s:  %s' % (ValvePath( frameInfo[1] ) - '%VTOOLS%', frameInfo[3]) )
@@ -358,9 +365,9 @@ def reportUsageToAuthor(author=None, payloadCB=None):
     # svr.sendmail( '%s@valvesoftware.com' % os.environ[ 'USERNAME' ], author, msg )
     # except: pass
 
-    ##throw the mail sending into a separate thread in case the mail server is being tardy - if it succeeds, great, if something happens, meh...
+    # throw the mail sending into a separate thread in case the mail server is being tardy - if it succeeds, great, if something happens, meh...
     # threading.Thread( target=sendMail ).start()
-    ##NOTE: this method should never ever throw an exception...  its purely a useage tracking tool and if it fails, it should fail invisibly...
+    # NOTE: this method should never ever throw an exception...  its purely a useage tracking tool and if it fails, it should fail invisibly...
     # except: pass
 
     pass
@@ -461,7 +468,9 @@ def EnableValidDependencyCheck():
                         if pyFilepath.isUnder(validPath):
                             return None
 
-                    print("### importing a script outside of game!", pyFilepath)
+                    print(
+                        "### importing a script outside of game!",
+                        pyFilepath)
                     return None
 
             return None
@@ -486,7 +495,8 @@ def DisableValidDependencyCheck():
 
 try:
     enableHook = os.environ['ENSURE_PYTHON_CONTAINED']
-    if enableHook: EnableValidDependencyCheck()
+    if enableHook:
+        EnableValidDependencyCheck()
 except KeyError:
     pass
 
@@ -502,7 +512,8 @@ def removeLineComments(lines):
         commentStart = line.find('//')
         if commentStart != -1:
             line = line[:commentStart]
-            if not line: continue
+            if not line:
+                continue
             # strip trailing whitespace and tabs
             line = line.rstrip(' \t')
         newLines.append(line)
@@ -570,7 +581,8 @@ class Chunk(object):
     a chunk's parent.  the value attribute can contain either a string or a list containing other Chunk instances
     """
 
-    def __init__(self, key, value=None, parent=None, append=False, quoteCompoundKeys=True):
+    def __init__(self, key, value=None, parent=None,
+                 append=False, quoteCompoundKeys=True):
         self.key = key
         self.value = value
         self.parent = parent
@@ -590,7 +602,8 @@ class Chunk(object):
         raise AttributeError("has no attribute called %s" % attr)
 
     def __len__(self):
-        if self.hasLen: return len(self.value)
+        if self.hasLen:
+            return len(self.value)
         return None
 
     def _hasLen(self):
@@ -613,7 +626,8 @@ class Chunk(object):
         if isinstance(self.value, list) and not isinstance(self.value[0], int):
             strLines.append(compoundLine.format('\t' * depth, self.key))
             strLines.append('\t' * depth + '{\n')
-            for val in self.value: strLines.append(val.__repr__(depth + 1))
+            for val in self.value:
+                strLines.append(val.__repr__(depth + 1))
             strLines.append('\t' * depth + '}\n')
         else:
             v = self.value
@@ -741,7 +755,8 @@ class Chunk(object):
         return matches
 
     def listAttr(self):
-        # lists all the "attributes" - an attribute is just as a named key.  NOTE: only Chunks with length have attributes
+        # lists all the "attributes" - an attribute is just as a named key.
+        # NOTE: only Chunks with length have attributes
         attrs = []
         for attr in self:
             attrs.append(attr.key)
@@ -796,10 +811,13 @@ class Chunk(object):
         parentChunk = self.parent
         if parentChunk:
 
-            # the chunk will definitely be in the _rawValue list so remove it from there
+            # the chunk will definitely be in the _rawValue list so remove it
+            # from there
             parentChunk._rawValue.remove(self)
 
-            # the chunk MAY also be in the value list, so try to remove it from there, but if its not, ignore the exception.  NULL chunks don't get put into this list
+            # the chunk MAY also be in the value list, so try to remove it from
+            # there, but if its not, ignore the exception.  NULL chunks don't
+            # get put into this list
             try:
                 parentChunk.value.remove(self)
             except ValueError:
@@ -902,7 +920,7 @@ class KeyValueFile(object):
         """
         reads the actual file, and passes the data read over to the parse_lines method
         """
-        if filepath == None:
+        if filepath is None:
             filepath = self.filepath
         else:
             filepath = Path(filepath)
@@ -931,10 +949,11 @@ class KeyValueFile(object):
         lineParser = self.lineParser
         n = 0
         for n, line in enumerate(lines):
-            # run the callback - if there are any problems, replace the callback with the null_callback
+            # run the callback - if there are any problems, replace the
+            # callback with the null_callback
             try:
                 callback(n, numLines)
-            except:
+            except BaseException:
                 callback = self.nullCallback
 
             if line == '':
@@ -954,7 +973,9 @@ class KeyValueFile(object):
                     raise TypeError(
                         'Malformed keyvalue found in file near line {0} in {1}. Check for misplaced quotes'.format(
                             n + 1, self.filepath))
-                parentListEnd.append(self.chunkClass(key, value, parentListEnd))
+                parentListEnd.append(
+                    self.chunkClass(
+                        key, value, parentListEnd))
             n += 1
 
     def __getitem__(self, *args):
@@ -1113,18 +1134,20 @@ class GameInfoFile(KeyValueFile):
     The parselines method can be passed a list of strings to fill an empty GameInfoFile object.
     """
 
-    def __init__(self, filepath=None, chunkClass=Chunk, readCallback=None, modname=None, startEmpty=False):
+    def __init__(self, filepath=None, chunkClass=Chunk,
+                 readCallback=None, modname=None, startEmpty=False):
 
         try:
             project()
-        except:
+        except BaseException:
             return
 
         self.modname = modname
 
         if (filepath is None) and (not startEmpty):
             filepath = Path(os.path.join(str(project()), 'gameinfo.gi'))
-            # look for a gameinfo.txt instead, pick a gameinfo.gi as default if it doesn't exist.
+            # look for a gameinfo.txt instead, pick a gameinfo.gi as default if
+            # it doesn't exist.
             if not filepath.exists:
                 filepath = Path(os.path.join(str(project()), 'gameinfo.txt'))
             if not filepath.exists:
@@ -1138,7 +1161,13 @@ class GameInfoFile(KeyValueFile):
         else:
             self.filename = None
 
-        KeyValueFile.__init__(self, filepath, parseLine, chunkClass, readCallback, True)
+        KeyValueFile.__init__(
+            self,
+            filepath,
+            parseLine,
+            chunkClass,
+            readCallback,
+            True)
 
     def __getattr__(self, attr):
         try:
@@ -1147,7 +1176,8 @@ class GameInfoFile(KeyValueFile):
             raise AttributeError("attribute '%s' not found" % attr)
 
     def getSearchPaths(self):
-        return [str(Path.Join('%VPROJECT%/../', modEntry)) for modEntry in self.getSearchMods()]
+        return [str(Path.Join('%VPROJECT%/../', modEntry))
+                for modEntry in self.getSearchMods()]
 
     def getSearchMods(self, includeAddons=None):
         """
@@ -1178,8 +1208,10 @@ class GameInfoFile(KeyValueFile):
         # See if a global addon is set
         sAddon = addon()
         # if the user has explicitly set includeAddons to True or the user has set a global
-        # addon and hasn't explicitly set includeAddons to False then include addons
-        bIncludeAddons = includeAddons or ((sAddon) and (includeAddons is None))
+        # addon and hasn't explicitly set includeAddons to False then include
+        # addons
+        bIncludeAddons = includeAddons or (
+            (sAddon) and (includeAddons is None))
 
         gi = '|gameinfo_path|'
         sp = '|all_source_engine_paths|'
@@ -1188,10 +1220,12 @@ class GameInfoFile(KeyValueFile):
             if (bAddon) and (not bIncludeAddons):
                 continue
             pos = chunk.value.find(gi)
-            if pos != -1: continue
+            if pos != -1:
+                continue
 
             sPath = chunk.value.replace(sp, '')
-            if not sPath: continue
+            if not sPath:
+                continue
             if bAddon:
                 sAddon = addon()
                 if sAddon:
@@ -1220,7 +1254,7 @@ class GameInfoFile(KeyValueFile):
         except AttributeError:
             try:
                 return self[0].game.value
-            except:
+            except BaseException:
                 return None
 
     title = property(getTitle)
@@ -1231,7 +1265,7 @@ class GameInfoFile(KeyValueFile):
         except AttributeError:
             try:
                 return self[0].engine.value
-            except:
+            except BaseException:
                 return None
 
     engine = property(getEngine)
@@ -1242,7 +1276,7 @@ class GameInfoFile(KeyValueFile):
         except AttributeError:
             try:
                 return self[0].ToolsDir.value
-            except:
+            except BaseException:
                 return None
 
     toolsDir = property(getToolsDir)
@@ -1253,7 +1287,7 @@ class GameInfoFile(KeyValueFile):
         except AttributeError:
             try:
                 return self[0].UseVPLATFORM.value
-            except:
+            except BaseException:
                 return None
 
     useVPLATFORM = property(__get_useVPLATFORM)
@@ -1264,7 +1298,7 @@ class GameInfoFile(KeyValueFile):
         except AttributeError:
             try:
                 return self[0].PythonVersion.value
-            except:
+            except BaseException:
                 return None
 
     pythonVersion = property(__getPythonVersion)
@@ -1275,7 +1309,7 @@ class GameInfoFile(KeyValueFile):
         except AttributeError:
             try:
                 return self[0].PythonHomeDisable.value
-            except:
+            except BaseException:
                 raise
 
     pythonHomeDisable = property(__get_PythonHomeDisable)
@@ -1286,7 +1320,7 @@ class GameInfoFile(KeyValueFile):
         except AttributeError:
             try:
                 return self[0].PythonDir.value
-            except:
+            except BaseException:
                 return None
 
     pythonDir = property(__get_PythonDir)
@@ -1361,7 +1395,8 @@ def lsGamePath(path, recursive=False):
     path = Path(path)
     files = []
 
-    for modPath in [Path(os.path.join(base, path.asNative())) for base in gameInfo.getSearchPaths()]:
+    for modPath in [Path(os.path.join(base, path.asNative()))
+                    for base in gameInfo.getSearchPaths()]:
         files += list(modPath.files(recursive=recursive))
 
     return files
@@ -1422,7 +1457,8 @@ def textureAsGameTexture(texturePath):
         relPath = relPath[2:]
     else:
         relPath = texturePath
-        if relPath.startswith('materials') or relPath.startswith('materialsrc'):
+        if relPath.startswith(
+                'materials') or relPath.startswith('materialsrc'):
             relPath = relPath[1:]
 
     relPath = Path(Path('materials') + relPath).setExtension('vtf')
@@ -1448,13 +1484,15 @@ def textureAsContentTexture(texturePath):
         relPath = relPath[2:]
     else:
         relPath = texturePath
-        if relPath.startswith('materials') or relPath.startswith('materialsrc'):
+        if relPath.startswith(
+                'materials') or relPath.startswith('materialsrc'):
             relPath = relPath[1:]
 
     contentPath = Path('materialsrc') / relPath
     for xtn in xtns:
         tmp = contentPath.expandAsContent(gameInfo, xtn)
-        if tmp is None: continue
+        if tmp is None:
+            continue
 
         return tmp
 
@@ -1476,7 +1514,8 @@ def resolveMaterialPath(materialPath):
         relPath = relPath[2:]
     else:
         relPath = materialPath
-        if relPath.startswith('materials') or relPath.startswith('materialsrc'):
+        if relPath.startswith(
+                'materials') or relPath.startswith('materialsrc'):
             relPath = relPath[1:]
 
     relPath = ('materials' + relPath).setExtension('vmt')
