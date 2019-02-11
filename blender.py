@@ -100,4 +100,3 @@ def get_mod_path(path: Path):
                 print(org)
                 return None
     return path
-
